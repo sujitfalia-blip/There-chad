@@ -1,0 +1,12 @@
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+Flask-JWT-Extended
+Flask-Migrate
+Flask-Limiter
+Flask-SocketIO
+eventlet
+psycopg2-binary
+redis
+gunicorn
+python-dotenv
