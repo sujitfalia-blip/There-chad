@@ -9,10 +9,10 @@ from extensions import db, jwt, migrate, socketio
 
 # ================= IMPORT ROUTES =================
 
-from backend.routes.auth import auth_bp
-from backend.routes.game import game_bp
-from backend.routes.admin import admin_bp
-from backend.routes.wallet import wallet_bp
+from routes.auth import auth_bp
+from routes.game import game_bp
+from routes.admin import admin_bp
+from routes.wallet import wallet_bp
 
 
 # ================= CREATE APP =================
