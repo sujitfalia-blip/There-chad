@@ -428,3 +428,28 @@ def cleanup_finished_timers():
         print(
             f"CLEANUP ERROR: {str(e)}"
       )
+
+# =========================================================
+# ================= TIMER STATUS ==========================
+# =========================================================
+
+def get_timer_status(table_id=None):
+
+    """
+    Current timer configuration
+    """
+
+    return {
+
+        "success": True,
+
+        "table_id": table_id,
+
+        "turn_time_seconds": 50,
+
+        "warning_time_seconds": 20,
+
+        "auto_pack_after": 50,
+
+        "warning_after": 30
+                }
