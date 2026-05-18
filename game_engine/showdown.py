@@ -188,41 +188,49 @@ def start_showdown(table_id):
 
         # ================= RESULT =================
 
-        showdown_players = []
+        def showdown_result(table_id):
 
-        for player in active_players:
+    players = PlayerCard.query.filter_by(
+        table_id=table_id,
+        is_packed=False
+    ).all()
 
-            user = User.query.get(
-                player.player_id
-            )
+    result = []
 
-            cards = player_cards(player)
+    for player in players:
 
-            showdown_players.append({
+        user = User.query.get(
+            player.player_id
+        )
 
-                "player_id":
-                    player.player_id,
+        cards = [
 
-                "player_name":
-                    user.name if user
-                    else None,
+            player.card_1,
+            player.card_2,
+            player.card_3
+        ]
 
-                "cards":
-                    cards,
+        result.append({
 
-                "hand":
-                    hand_name(cards),
+            "player_id":
+                player.player_id,
 
-                "strength":
-                    get_hand_strength(cards),
+            "player_name":
+                user.name if user else None,
 
-                "is_winner":
-                    player.player_id ==
-                    winner_player.player_id
-            })
+            "cards":
+                cards,
 
-        db.session.commit()
+            "hand":
+                hand_name(cards)
+        })
 
+    return {
+
+        "success": True,
+
+        "showdown": result
+    }
         # ================= SOCKET =================
 
         socketio.emit(
