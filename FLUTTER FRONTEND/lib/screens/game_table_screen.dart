@@ -15,9 +15,7 @@ class _GameTableState extends State<GameTable> {
   final SocketService socketService = SocketService();
 
   List players = [];
-
   bool isConnected = false;
-
   String status = "Connecting...";
 
   @override
@@ -26,21 +24,17 @@ class _GameTableState extends State<GameTable> {
     initSocket();
   }
 
-  // ================= SOCKET INIT =================
-
   void initSocket() {
-
     socketService.connect();
 
     setState(() {
       isConnected = true;
-      status = "Connected to Table";
+      status = "Connected";
     });
 
     socketService.joinTable(widget.tableId);
 
     socketService.onPlayerJoined((data) {
-
       if (!mounted) return;
 
       setState(() {
@@ -49,151 +43,122 @@ class _GameTableState extends State<GameTable> {
     });
   }
 
-  // ================= UI =================
-
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
-
       backgroundColor: const Color(0xFF0B3D2E),
 
       appBar: AppBar(
         title: Text("Table #${widget.tableId}"),
         backgroundColor: Colors.black,
-        elevation: 0,
       ),
 
-      body: Stack(
+      body: Column(
 
         children: [
 
-          // ================= TABLE BACKGROUND =================
-
+          // ================= STATUS =================
           Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF0B3D2E),
-                  Color(0xFF06281E),
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(status, style: const TextStyle(color: Colors.white)),
+                Text("Players: ${players.length}",
+                    style: const TextStyle(color: Colors.amber)),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // ================= GAME TABLE =================
+          Expanded(
+            child: Center(
+              child: Stack(
+
+                alignment: Alignment.center,
+
+                children: [
+
+                  // 🟢 Poker Table
+                  Container(
+                    width: 280,
+                    height: 280,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.green[800],
+                      border: Border.all(color: Colors.white24, width: 3),
+                    ),
+                  ),
+
+                  // 🧑 Players around table
+                  ...List.generate(players.length, (index) {
+
+                    double angle = (index / players.length) * 3.14 * 2;
+
+                    double radius = 140;
+
+                    return Positioned(
+                      left: 150 + radius * (Math().cos(angle)),
+                      top: 150 + radius * (Math().sin(angle)),
+
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black87,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.person, color: Colors.white),
+                            Text(
+                              "P${index + 1}",
+                              style: const TextStyle(color: Colors.white),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
                 ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
               ),
             ),
           ),
 
-          // ================= MAIN CONTENT =================
+          // ================= ACTION BAR =================
+          Container(
+            padding: const EdgeInsets.all(12),
+            color: Colors.black87,
 
-          Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
 
-            children: [
+              children: [
 
-              const SizedBox(height: 20),
-
-              // ================= STATUS BAR =================
-
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(12),
+                ElevatedButton(
+                  onPressed: () {},
+                  child: const Text("BET"),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
 
-                    Text(
-                      status,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-
-                    Text(
-                      "Players: ${players.length}",
-                      style: const TextStyle(
-                        color: Colors.amber,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                ElevatedButton(
+                  onPressed: () {},
+                  child: const Text("PACK"),
                 ),
-              ),
 
-              const SizedBox(height: 20),
-
-              // ================= TABLE VIEW =================
-
-              Expanded(
-
-                child: GridView.builder(
-
-                  padding: const EdgeInsets.all(16),
-
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.5,
-                  ),
-
-                  itemCount: players.length,
-
-                  itemBuilder: (context, index) {
-
-                    final player = players[index];
-
-                    return Container(
-
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.greenAccent,
-                          width: 1,
-                        ),
-                      ),
-
-                      child: Column(
-
-                        mainAxisAlignment: MainAxisAlignment.center,
-
-                        children: [
-
-                          const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          Text(
-                            "Player ${index + 1}",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          Text(
-                            player.toString(),
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                ElevatedButton(
+                  onPressed: () {},
+                  child: const Text("SEE"),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          )
         ],
       ),
     );
