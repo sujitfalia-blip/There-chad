@@ -18,8 +18,7 @@ from models.player_card import PlayerCard
 
 from game_engine.rules import (
     compare_hands,
-    hand_name,
-    get_hand_strength
+    hand_name
 )
 
 # =========================================================
@@ -55,16 +54,71 @@ def player_cards(player):
 
 
 # =========================================================
+# ================= SHOWDOWN RESULT =======================
+# =========================================================
+
+def showdown_result(table_id):
+
+    try:
+
+        players = PlayerCard.query.filter_by(
+            table_id=table_id,
+            is_packed=False
+        ).all()
+
+        results = []
+
+        for player in players:
+
+            user = User.query.get(
+                player.player_id
+            )
+
+            cards = [
+
+                player.card_1,
+                player.card_2,
+                player.card_3
+            ]
+
+            results.append({
+
+                "player_id":
+                    player.player_id,
+
+                "player_name":
+                    user.name if user else None,
+
+                "cards":
+                    cards,
+
+                "hand":
+                    hand_name(cards),
+
+                "is_seen":
+                    player.is_seen,
+
+                "is_packed":
+                    player.is_packed
+            })
+
+        return {
+
+            "success": True,
+
+            "showdown": results
+        }
+
+    except Exception as e:
+
+        raise Exception(str(e))
+
+
+# =========================================================
 # ================= VALIDATE SHOWDOWN =====================
 # =========================================================
 
 def validate_showdown(table):
-
-    """
-    Showdown allowed only if:
-    - game running
-    - minimum 2 players active
-    """
 
     if not table:
 
@@ -97,10 +151,6 @@ def validate_showdown(table):
 # =========================================================
 
 def compare_all_players(players):
-
-    """
-    Find strongest hand
-    """
 
     winner = players[0]
 
@@ -186,51 +236,16 @@ def start_showdown(table_id):
         table.finished_at = \
             datetime.utcnow()
 
-        # ================= RESULT =================
+        # ================= SHOWDOWN PLAYERS =================
 
-        def showdown_result(table_id):
-
-    players = PlayerCard.query.filter_by(
-        table_id=table_id,
-        is_packed=False
-    ).all()
-
-    result = []
-
-    for player in players:
-
-        user = User.query.get(
-            player.player_id
+        showdown_players = showdown_result(
+            table.id
         )
 
-        cards = [
+        # ================= SAVE =================
 
-            player.card_1,
-            player.card_2,
-            player.card_3
-        ]
+        db.session.commit()
 
-        result.append({
-
-            "player_id":
-                player.player_id,
-
-            "player_name":
-                user.name if user else None,
-
-            "cards":
-                cards,
-
-            "hand":
-                hand_name(cards)
-        })
-
-    return {
-
-        "success": True,
-
-        "showdown": result
-    }
         # ================= SOCKET =================
 
         socketio.emit(
@@ -252,7 +267,7 @@ def start_showdown(table_id):
                     table.current_pot,
 
                 "players":
-                    showdown_players
+                    showdown_players["showdown"]
             },
 
             room=f"table_{table.id}"
@@ -268,8 +283,8 @@ def start_showdown(table_id):
             "winner_name":
                 winner_user.name,
 
-            "showdown_players":
-                showdown_players
+            "players":
+                showdown_players["showdown"]
         }
 
     except SQLAlchemyError as e:
@@ -296,13 +311,11 @@ def manual_showdown(
     table_id
 ):
 
-    """
-    Player requested showdown
-    """
-
     try:
 
-        table = Table.query.get(table_id)
+        table = Table.query.get(
+            table_id
+        )
 
         if not table:
 
@@ -354,13 +367,11 @@ def manual_showdown(
 
 def auto_showdown_if_needed(table_id):
 
-    """
-    Auto showdown if only 2 players left
-    """
-
     try:
 
-        table = Table.query.get(table_id)
+        table = Table.query.get(
+            table_id
+        )
 
         if not table:
 
@@ -405,7 +416,9 @@ def showdown_status(table_id):
 
     try:
 
-        table = Table.query.get(table_id)
+        table = Table.query.get(
+            table_id
+        )
 
         if not table:
 
@@ -446,7 +459,9 @@ def reset_showdown(table_id):
 
     try:
 
-        table = Table.query.get(table_id)
+        table = Table.query.get(
+            table_id
+        )
 
         if not table:
 
