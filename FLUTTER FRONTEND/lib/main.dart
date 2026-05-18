@@ -9,486 +9,169 @@ class TeenPattiPro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
-
       debugShowCheckedModeBanner: false,
-
       title: 'Teen Patti Pro',
-
       theme: ThemeData(
-
         brightness: Brightness.dark,
-
         scaffoldBackgroundColor: const Color(0xFF0B0B0B),
-
-        fontFamily: 'Poppins',
-
         primaryColor: Colors.amber,
-
         colorScheme: ColorScheme.dark(
-
-          primary: Colors.amber.shade600,
+          primary: Colors.amber,
         ),
       ),
-
       home: const HomeScreen(),
     );
   }
 }
 
-# ================= HOME SCREEN =================
+// ================= HOME SCREEN =================
 
 class HomeScreen extends StatefulWidget {
-
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() =>
-      _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState
-    extends State<HomeScreen> {
-
+class _HomeScreenState extends State<HomeScreen> {
   final List<TableModel> tables = [
-
-    TableModel(
-      tableName: "Beginner Table",
-      bootAmount: 1,
-      players: 3,
-      maxPlayers: 5,
-    ),
-
-    TableModel(
-      tableName: "Silver Table",
-      bootAmount: 5,
-      players: 5,
-      maxPlayers: 5,
-    ),
-
-    TableModel(
-      tableName: "Gold Table",
-      bootAmount: 10,
-      players: 2,
-      maxPlayers: 5,
-    ),
-
-    TableModel(
-      tableName: "VIP Table",
-      bootAmount: 50,
-      players: 4,
-      maxPlayers: 5,
-    ),
+    TableModel("Beginner Table", 1, 3, 5),
+    TableModel("Silver Table", 5, 5, 5),
+    TableModel("Gold Table", 10, 2, 5),
+    TableModel("VIP Table", 50, 4, 5),
   ];
+
+  void joinTable(TableModel table) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GameScreen(table: table),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       appBar: AppBar(
-
-        elevation: 0,
-
         backgroundColor: Colors.black,
-
         title: const Text(
-
           "Teen Patti Pro",
-
           style: TextStyle(
             color: Colors.amber,
             fontWeight: FontWeight.bold,
           ),
         ),
-
-        actions: [
-
-          Padding(
-
-            padding: const EdgeInsets.all(12),
-
-            child: Container(
-
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 6,
-              ),
-
-              decoration: BoxDecoration(
-
-                color: Colors.amber.shade700,
-
-                borderRadius: BorderRadius.circular(20),
-              ),
-
-              child: const Row(
-
-                children: [
-
-                  Icon(
-                    Icons.account_balance_wallet,
-                    color: Colors.black,
-                    size: 18,
-                  ),
-
-                  SizedBox(width: 5),
-
-                  Text(
-
-                    "₹ 25,000",
-
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                ],
-              ),
-            ),
-          )
-        ],
       ),
 
       body: Column(
-
         children: [
-
-          # ================= PROFILE =================
-
           Container(
-
             margin: const EdgeInsets.all(16),
-
             padding: const EdgeInsets.all(16),
-
             decoration: BoxDecoration(
-
               gradient: LinearGradient(
-
                 colors: [
                   Colors.amber.shade700,
                   Colors.orange.shade900,
                 ],
               ),
-
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(20),
             ),
-
-            child: Row(
-
+            child: const Row(
               children: [
-
-                CircleAvatar(
-
-                  radius: 35,
-
-                  backgroundColor: Colors.black,
-
-                  child: Icon(
-                    Icons.person,
-                    size: 40,
-                    color: Colors.amber,
-                  ),
-                ),
-
-                const SizedBox(width: 15),
-
-                const Expanded(
-
-                  child: Column(
-
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
-                    children: [
-
-                      Text(
-
-                        "Sujit Falia",
-
-                        style: TextStyle(
-
-                          fontSize: 22,
-
-                          fontWeight:
-                              FontWeight.bold,
-
-                          color: Colors.black,
-                        ),
-                      ),
-
-                      SizedBox(height: 5),
-
-                      Text(
-
-                        "VIP PLAYER",
-
-                        style: TextStyle(
-
-                          color: Colors.black87,
-
-                          fontWeight:
-                              FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                ElevatedButton(
-
-                  style: ElevatedButton.styleFrom(
-
-                    backgroundColor: Colors.black,
-
-                    shape: RoundedRectangleBorder(
-
-                      borderRadius:
-                          BorderRadius.circular(15),
-                    ),
-                  ),
-
-                  onPressed: () {},
-
-                  child: const Text(
-
-                    "ADD CASH",
-
-                    style: TextStyle(
-                      color: Colors.amber,
-                    ),
+                Icon(Icons.person, color: Colors.black),
+                SizedBox(width: 10),
+                Text(
+                  "Sujit Falia | VIP Player",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
                   ),
                 )
               ],
             ),
           ),
 
-          # ================= TABLE TITLE =================
-
           const Padding(
-
-            padding: EdgeInsets.symmetric(
-              horizontal: 16,
-            ),
-
+            padding: EdgeInsets.all(16),
             child: Align(
-
               alignment: Alignment.centerLeft,
-
               child: Text(
-
                 "LIVE TABLES",
-
                 style: TextStyle(
-
                   color: Colors.amber,
-
-                  fontSize: 22,
-
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 10),
-
-          # ================= TABLE LIST =================
-
           Expanded(
-
             child: ListView.builder(
-
               itemCount: tables.length,
-
               itemBuilder: (context, index) {
-
                 final table = tables[index];
 
                 return Container(
-
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   padding: const EdgeInsets.all(16),
-
                   decoration: BoxDecoration(
-
                     color: const Color(0xFF1A1A1A),
-
-                    borderRadius:
-                        BorderRadius.circular(25),
-
-                    border: Border.all(
-                      color: Colors.amber.shade700,
-                      width: 1,
-                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.amber),
                   ),
-
                   child: Column(
-
                     children: [
-
                       Row(
-
                         children: [
-
-                          Container(
-
-                            padding:
-                                const EdgeInsets.all(12),
-
-                            decoration: BoxDecoration(
-
-                              color: Colors.amber
-                                  .shade700,
-
-                              borderRadius:
-                                  BorderRadius.circular(
-                                      18),
-                            ),
-
-                            child: const Icon(
-
-                              Icons.casino,
-
-                              color: Colors.black,
-
-                              size: 30,
-                            ),
-                          ),
-
-                          const SizedBox(width: 15),
-
+                          const Icon(Icons.casino, color: Colors.amber),
+                          const SizedBox(width: 10),
                           Expanded(
-
                             child: Column(
-
-                              crossAxisAlignment:
-                                  CrossAxisAlignment
-                                      .start,
-
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-
                                 Text(
-
-                                  table.tableName,
-
+                                  table.name,
                                   style: const TextStyle(
-
                                     color: Colors.white,
-
-                                    fontSize: 20,
-
-                                    fontWeight:
-                                        FontWeight.bold,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-
-                                const SizedBox(
-                                    height: 6),
-
                                 Text(
-
-                                  "Boot ₹${table.bootAmount}",
-
-                                  style: TextStyle(
-
-                                    color: Colors.amber
-                                        .shade400,
-
-                                    fontSize: 15,
+                                  "Boot ₹${table.boot}",
+                                  style: const TextStyle(
+                                    color: Colors.grey,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-
-                          Column(
-
-                            children: [
-
-                              const Icon(
-
-                                Icons.people,
-
-                                color: Colors.white70,
-                              ),
-
-                              const SizedBox(height: 5),
-
-                              Text(
-
-                                "${table.players}/${table.maxPlayers}",
-
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            "${table.players}/${table.maxPlayers}",
+                            style: const TextStyle(color: Colors.white),
                           )
                         ],
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 15),
 
-                      Row(
-
-                        children: [
-
-                          Expanded(
-
-                            child: ElevatedButton(
-
-                              style:
-                                  ElevatedButton.styleFrom(
-
-                                backgroundColor:
-                                    Colors.amber
-                                        .shade700,
-
-                                padding:
-                                    const EdgeInsets
-                                        .symmetric(
-                                  vertical: 14,
-                                ),
-
-                                shape:
-                                    RoundedRectangleBorder(
-
-                                  borderRadius:
-                                      BorderRadius
-                                          .circular(18),
-                                ),
-                              ),
-
-                              onPressed: () {
-
-                                # ================= JOIN =================
-
-                              },
-
-                              child: const Text(
-
-                                "JOIN TABLE",
-
-                                style: TextStyle(
-
-                                  color: Colors.black,
-
-                                  fontWeight:
-                                      FontWeight.bold,
-
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
                           ),
-                        ],
+                          onPressed: () => joinTable(table),
+                          child: const Text(
+                            "JOIN TABLE",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
                       )
                     ],
                   ),
@@ -498,66 +181,42 @@ class _HomeScreenState
           )
         ],
       ),
+    );
+  }
+}
 
-      # ================= BOTTOM NAV =================
+// ================= GAME SCREEN =================
 
-      bottomNavigationBar: BottomNavigationBar(
+class GameScreen extends StatelessWidget {
+  final TableModel table;
 
+  const GameScreen({super.key, required this.table});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
         backgroundColor: Colors.black,
-
-        selectedItemColor: Colors.amber,
-
-        unselectedItemColor: Colors.white60,
-
-        currentIndex: 0,
-
-        items: const [
-
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
-
-          BottomNavigationBarItem(
-            icon: Icon(Icons.casino),
-            label: "Tables",
-          ),
-
-          BottomNavigationBarItem(
-            icon: Icon(Icons.mic),
-            label: "Voice",
-          ),
-
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Profile",
-          ),
-        ],
+        title: Text(table.name),
+      ),
+      body: Center(
+        child: Text(
+          "Game Started\nBoot: ₹${table.boot}",
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 20),
+        ),
       ),
     );
   }
 }
 
-# ================= TABLE MODEL =================
+// ================= MODEL =================
 
 class TableModel {
-
-  final String tableName;
-
-  final int bootAmount;
-
+  final String name;
+  final int boot;
   final int players;
-
   final int maxPlayers;
 
-  TableModel({
-
-    required this.tableName,
-
-    required this.bootAmount,
-
-    required this.players,
-
-    required this.maxPlayers,
-  });
+  TableModel(this.name, this.boot, this.players, this.maxPlayers);
 }
