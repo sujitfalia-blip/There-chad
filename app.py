@@ -70,6 +70,13 @@ app.register_blueprint(game_bp, url_prefix='/api/game')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
 
 app.register_blueprint(wallet_bp, url_prefix='/api/wallet')
+app.register_blueprint(betting_bp)
+app.register_blueprint(sideshow_bp)
+app.register_blueprint(showdown_bp)
+app.register_blueprint(winner_bp)
+app.register_blueprint(timer_bp)
+app.register_blueprint(turn_bp)
+app.register_blueprint(history_bp)
 
 
 # ================= HEALTH CHECK =================
