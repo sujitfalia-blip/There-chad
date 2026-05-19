@@ -20,6 +20,7 @@ from routes.winner import winner_bp
 from routes.history import history_bp
 from routes.timer import timer_bp
 from routes.turn import turn_bp
+from models.game_round import GameRound
 
 
 # ================= CREATE APP =================
