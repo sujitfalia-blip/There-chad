@@ -8,13 +8,15 @@ class ApiService {
 
   late final Dio dio;
 
-  // ================= SIMPLE CACHE =================
   final Map<String, dynamic> _cache = {};
+
+  // 🔥 PRODUCTION BASE URL (RENDER)
+  static const String baseUrl = "https://there-chad.onrender.com/api";
 
   ApiService._internal() {
     dio = Dio(
       BaseOptions(
-        baseUrl: "https://there-chad.onrender.com",
+        baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         sendTimeout: const Duration(seconds: 10),
@@ -29,7 +31,7 @@ class ApiService {
     dio.interceptors.add(_logInterceptor());
   }
 
-  // ================= AUTH INTERCEPTOR =================
+  // ================= AUTH =================
   InterceptorsWrapper _authInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -45,21 +47,20 @@ class ApiService {
     );
   }
 
-  // ================= LOG + SLOW REQUEST DETECTOR =================
+  // ================= LOG =================
   InterceptorsWrapper _logInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) {
-        options.extra["start_time"] = DateTime.now().millisecondsSinceEpoch;
+        options.extra["start"] = DateTime.now().millisecondsSinceEpoch;
         handler.next(options);
       },
       onResponse: (response, handler) {
-        final start = response.requestOptions.extra["start_time"];
-        final duration =
+        final start = response.requestOptions.extra["start"];
+        final time =
             DateTime.now().millisecondsSinceEpoch - (start ?? 0);
 
-        if (duration > 2000) {
-          // slow API warning
-          print("⚠️ SLOW API: ${response.requestOptions.path} = ${duration}ms");
+        if (time > 2000) {
+          print("⚠️ SLOW API: ${response.requestOptions.path} ${time}ms");
         }
 
         handler.next(response);
@@ -71,149 +72,91 @@ class ApiService {
     );
   }
 
-  // ================= RETRY LOGIC =================
-  Future<Response> _retryRequest(
-    Future<Response> Function() request,
-  ) async {
-    int retries = 2;
+  // ================= RETRY =================
+  Future<Response> _retry(Future<Response> Function() req) async {
+    int retry = 2;
 
     while (true) {
       try {
-        return await request();
-      } catch (e) {
-        if (retries == 0) rethrow;
-        retries--;
+        return await req();
+      } catch (_) {
+        if (retry == 0) rethrow;
+        retry--;
         await Future.delayed(const Duration(milliseconds: 500));
       }
     }
   }
 
   // ================= SAFE REQUEST =================
-  Future<Map<String, dynamic>> _safeRequest(
-    String cacheKey,
-    Future<Response> Function() request,
+  Future<Map<String, dynamic>> _safe(
+    String key,
+    Future<Response> Function() req,
   ) async {
     try {
-      // ===== CACHE HIT =====
-      if (_cache.containsKey(cacheKey)) {
-        return _cache[cacheKey];
-      }
+      if (_cache.containsKey(key)) return _cache[key];
 
-      final response = await _retryRequest(() => request());
-
-      final data = response.data;
+      final res = await _retry(req);
+      final data = res.data;
 
       if (data is Map<String, dynamic>) {
-        _cache[cacheKey] = data; // cache store
+        _cache[key] = data;
         return data;
       }
 
-      return {
-        "success": false,
-        "message": "Invalid response format",
-      };
+      return {"success": false, "message": "Invalid response"};
     } on DioException catch (e) {
       return {
         "success": false,
-        "message": e.response?.data?["message"] ??
-            e.message ??
-            "Network error",
+        "message": e.response?.data?["message"] ?? e.message,
         "status": e.response?.statusCode,
-      };
-    } catch (e) {
-      return {
-        "success": false,
-        "message": "Unexpected error",
-        "error": e.toString(),
       };
     }
   }
 
-  // =========================================================
-  // ================= LOGIN ================================
-  // =========================================================
-  Future<Map<String, dynamic>> login(
-    String phone,
-    String password,
-  ) async {
-    final res = await _safeRequest(
+  // ================= API =================
+  Future<Map<String, dynamic>> login(String phone, String password) async {
+    final res = await _safe(
       "login_$phone",
-      () => dio.post(
-        "/auth/login",
-        data: {
-          "phone": phone,
-          "password": password,
-        },
-      ),
+      () => dio.post("/auth/login",
+          data: {"phone": phone, "password": password}),
     );
 
     if (res["token"] != null) {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString("token", res["token"]);
+      prefs.setString("token", res["token"]);
     }
 
     return res;
   }
 
-  // =========================================================
-  // ================= REGISTER ==============================
-  // =========================================================
   Future<Map<String, dynamic>> register(
-    String name,
-    String phone,
-    String password,
-  ) async {
-    return _safeRequest(
+      String name, String phone, String password) {
+    return _safe(
       "register_$phone",
-      () => dio.post(
-        "/auth/register",
-        data: {
-          "name": name,
-          "phone": phone,
-          "password": password,
-        },
-      ),
+      () => dio.post("/auth/register",
+          data: {"name": name, "phone": phone, "password": password}),
     );
   }
 
-  // =========================================================
-  // ================= JOIN TABLE ============================
-  // =========================================================
-  Future<Map<String, dynamic>> joinTable(int boot) async {
-    return _safeRequest(
+  Future<Map<String, dynamic>> joinTable(int boot) {
+    return _safe(
       "join_$boot",
-      () => dio.post(
-        "/game/join-table",
-        data: {
-          "boot": boot,
-        },
-      ),
+      () => dio.post("/game/join-table", data: {"boot": boot}),
     );
   }
 
-  // =========================================================
-  // ================= WALLET ================================
-  // =========================================================
-  Future<Map<String, dynamic>> getBalance() async {
-    return _safeRequest(
+  Future<Map<String, dynamic>> getBalance() {
+    return _safe(
       "balance",
       () => dio.get("/wallet/balance"),
     );
   }
 
-  // =========================================================
-  // ================= CLEAR CACHE ===========================
-  // =========================================================
-  void clearCache() {
-    _cache.clear();
-  }
+  void clearCache() => _cache.clear();
 
-  // =========================================================
-  // ================= LOGOUT ================================
-  // =========================================================
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove("token");
+    prefs.remove("token");
     clearCache();
   }
 }
