@@ -14,6 +14,7 @@ from routes.game import game_bp
 from routes.admin import admin_bp
 from routes.wallet import wallet_bp
 from routes.betting import betting_bp
+from routes.sideshow import sideshow_bp
 
 
 # ================= CREATE APP =================
