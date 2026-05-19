@@ -13,6 +13,7 @@ from routes.auth import auth_bp
 from routes.game import game_bp
 from routes.admin import admin_bp
 from routes.wallet import wallet_bp
+from routes.betting import betting_bp
 
 
 # ================= CREATE APP =================
