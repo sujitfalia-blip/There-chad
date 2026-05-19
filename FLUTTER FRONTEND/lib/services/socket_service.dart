@@ -9,7 +9,7 @@ class SocketService {
 
   SocketService._internal();
 
-  late IO.Socket socket;
+  IO.Socket? socket;
 
   bool _connected = false;
 
@@ -24,26 +24,27 @@ class SocketService {
   // =========================================================
   void connect({String? url, required String token}) {
     _token = token;
-
-    // 🔥 USE RENDER URL FROM CONFIG (PRODUCTION SAFE)
     _url = url ?? AppConfig.socketUrl;
+
+    // 🔥 CLEAN RE-CONNECT SAFETY
+    disconnect();
 
     socket = IO.io(
       _url!,
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .enableAutoConnect()
-          .setReconnectionAttempts(999999)
+          .setReconnectionAttempts(10) // 🔥 safe production limit
           .setReconnectionDelay(2000)
           .setReconnectionDelayMax(5000)
           .setQuery({"token": token})
           .build(),
     );
 
-    socket.connect();
+    socket!.connect();
 
     // ================= CONNECTED =================
-    socket.onConnect((_) {
+    socket!.onConnect((_) {
       _connected = true;
       print("✅ SOCKET CONNECTED: $_url");
 
@@ -51,17 +52,17 @@ class SocketService {
     });
 
     // ================= DISCONNECT =================
-    socket.onDisconnect((_) {
+    socket!.onDisconnect((_) {
       _connected = false;
       print("❌ SOCKET DISCONNECTED");
     });
 
     // ================= ERROR =================
-    socket.onConnectError((data) {
+    socket!.onConnectError((data) {
       print("⚠️ CONNECT ERROR: $data");
     });
 
-    socket.onError((data) {
+    socket!.onError((data) {
       print("⚠️ SOCKET ERROR: $data");
     });
   }
@@ -70,8 +71,8 @@ class SocketService {
   // ================= SAFE EMIT =============================
   // =========================================================
   void emit(String event, dynamic data) {
-    if (_connected) {
-      socket.emit(event, data);
+    if (_connected && socket != null) {
+      socket!.emit(event, data);
     } else {
       _pendingEmits.add({
         "event": event,
@@ -81,9 +82,12 @@ class SocketService {
   }
 
   void _flushPending() {
+    if (socket == null) return;
+
     for (var item in _pendingEmits) {
-      socket.emit(item["event"], item["data"]);
+      socket!.emit(item["event"], item["data"]);
     }
+
     _pendingEmits.clear();
   }
 
@@ -94,7 +98,7 @@ class SocketService {
     if (!_streams.containsKey(event)) {
       final controller = StreamController<dynamic>.broadcast();
 
-      socket.on(event, (data) {
+      socket?.on(event, (data) {
         controller.add(data);
       });
 
@@ -108,14 +112,15 @@ class SocketService {
   // ================= ONE TIME LISTENER ======================
   // =========================================================
   void once(String event, Function(dynamic) callback) {
-    socket.once(event, callback);
+    socket?.once(event, callback);
   }
 
   // =========================================================
   // ================= REMOVE LISTENER ========================
   // =========================================================
   void off(String event) {
-    socket.off(event);
+    socket?.off(event);
+
     _streams[event]?.close();
     _streams.remove(event);
   }
@@ -124,8 +129,8 @@ class SocketService {
   // ================= MANUAL LISTENER ========================
   // =========================================================
   void on(String event, Function(dynamic) callback) {
-    socket.off(event);
-    socket.on(event, callback);
+    socket?.off(event);
+    socket?.on(event, callback);
   }
 
   // =========================================================
@@ -142,7 +147,10 @@ class SocketService {
   // ================= DISCONNECT =============================
   // =========================================================
   void disconnect() {
-    socket.disconnect();
+    socket?.disconnect();
+    socket?.dispose();
+
+    socket = null;
     _connected = false;
 
     for (var c in _streams.values) {
