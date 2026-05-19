@@ -14,7 +14,7 @@ class ApiService {
   ApiService._internal() {
     dio = Dio(
       BaseOptions(
-        baseUrl: "http://10.236.188.210:5000/api",
+        baseUrl: "https://there-chad.onrender.com",
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         sendTimeout: const Duration(seconds: 10),
