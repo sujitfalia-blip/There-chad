@@ -3,16 +3,24 @@ class AppConfig {
   // ================= ENVIRONMENT ============================
   // =========================================================
 
-  static const bool isProduction = false;
+  static const bool isProduction = true;
+
+  // =========================================================
+  // ================= BACKEND ================================
+  // =========================================================
 
   static const String _devBaseUrl = "http://10.236.188.210:5000/api";
   static const String _devSocketUrl = "http://10.236.188.210:5000";
 
-  static const String _prodBaseUrl = "https://your-domain.com/api";
-  static const String _prodSocketUrl = "https://your-domain.com";
+  static const String _prodBaseUrl =
+      "https://there-chad.onrender.com/api";
+
+  // ⚠️ Socket root only (no /api)
+  static const String _prodSocketUrl =
+      "https://there-chad.onrender.com";
 
   // =========================================================
-  // ================= ACTIVE URL =============================
+  // ================= ACTIVE ================================
   // =========================================================
 
   static String get baseUrl =>
@@ -30,17 +38,16 @@ class AppConfig {
   static const int autoPackTime = 50;
 
   // =========================================================
-  // ================= FEATURE FLAGS ==========================
+  // ================= FEATURES ===============================
   // =========================================================
 
   static const bool enableChat = true;
   static const bool enableSound = true;
   static const bool enableVibration = true;
-
-  static const bool enableDebugLogs = true;
+  static const bool enableDebugLogs = false;
 
   // =========================================================
-  // ================= GAME LIMITS ============================
+  // ================= LIMITS ================================
   // =========================================================
 
   static const int maxPlayersPerTable = 6;
@@ -61,7 +68,7 @@ class AppConfig {
   static const String eventTurnSkipped = "turn_skipped";
 
   // =========================================================
-  // ================= API ENDPOINTS ==========================
+  // ================= API ============================
   // =========================================================
 
   static const String apiLogin = "/auth/login";
@@ -70,7 +77,7 @@ class AppConfig {
   static const String apiBalance = "/wallet/balance";
 
   // =========================================================
-  // ================= TIME CONFIG ============================
+  // ================= TIME ============================
   // =========================================================
 
   static const Duration apiTimeout = Duration(seconds: 10);
