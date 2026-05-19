@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
+import '../config/app_config.dart';
+
 class SocketService {
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
@@ -10,19 +12,24 @@ class SocketService {
   late IO.Socket socket;
 
   bool _connected = false;
+
   String? _token;
   String? _url;
 
   final Map<String, StreamController<dynamic>> _streams = {};
   final List<Map<String, dynamic>> _pendingEmits = [];
 
-  // ================= CONNECT =================
-  void connect(String url, String token) {
-    _url = url;
+  // =========================================================
+  // ================= CONNECT ================================
+  // =========================================================
+  void connect({String? url, required String token}) {
     _token = token;
 
+    // 🔥 USE RENDER URL FROM CONFIG (PRODUCTION SAFE)
+    _url = url ?? AppConfig.socketUrl;
+
     socket = IO.io(
-      url,
+      _url!,
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .enableAutoConnect()
@@ -38,9 +45,8 @@ class SocketService {
     // ================= CONNECTED =================
     socket.onConnect((_) {
       _connected = true;
-      print("✅ SOCKET CONNECTED");
+      print("✅ SOCKET CONNECTED: $_url");
 
-      // resend pending emits
       _flushPending();
     });
 
@@ -61,7 +67,7 @@ class SocketService {
   }
 
   // =========================================================
-  // ================= SAFE EMIT (QUEUE SYSTEM) =============
+  // ================= SAFE EMIT =============================
   // =========================================================
   void emit(String event, dynamic data) {
     if (_connected) {
@@ -82,7 +88,7 @@ class SocketService {
   }
 
   // =========================================================
-  // ================= STREAM LISTENER (BEST FOR FLUTTER) ====
+  // ================= STREAM LISTENER ========================
   // =========================================================
   Stream<dynamic> stream(String event) {
     if (!_streams.containsKey(event)) {
@@ -99,14 +105,14 @@ class SocketService {
   }
 
   // =========================================================
-  // ================= ONE-TIME LISTENER =====================
+  // ================= ONE TIME LISTENER ======================
   // =========================================================
   void once(String event, Function(dynamic) callback) {
     socket.once(event, callback);
   }
 
   // =========================================================
-  // ================= REMOVE LISTENER =======================
+  // ================= REMOVE LISTENER ========================
   // =========================================================
   void off(String event) {
     socket.off(event);
@@ -115,25 +121,25 @@ class SocketService {
   }
 
   // =========================================================
-  // ================= MANUAL LISTEN =========================
+  // ================= MANUAL LISTENER ========================
   // =========================================================
   void on(String event, Function(dynamic) callback) {
-    socket.off(event); // prevent duplicate listeners
+    socket.off(event);
     socket.on(event, callback);
   }
 
   // =========================================================
-  // ================= RECONNECT MANUALLY ====================
+  // ================= RECONNECT ==============================
   // =========================================================
   void reconnect() {
-    if (_url != null && _token != null) {
+    if (_token != null) {
       disconnect();
-      connect(_url!, _token!);
+      connect(token: _token!);
     }
   }
 
   // =========================================================
-  // ================= DISCONNECT ============================
+  // ================= DISCONNECT =============================
   // =========================================================
   void disconnect() {
     socket.disconnect();
