@@ -6,8 +6,10 @@
 import uuid
 
 from datetime import datetime
+from decimal import Decimal
 
 from extensions import db
+
 
 # =========================================================
 # ================= TRANSACTION MODEL =====================
@@ -17,10 +19,12 @@ class Transaction(db.Model):
 
     __tablename__ = "transactions"
 
-    # ================= PRIMARY =================
+    # =====================================================
+    # ================= PRIMARY ============================
+    # =====================================================
 
     id = db.Column(
-        db.Integer,
+        db.BigInteger,
         primary_key=True
     )
 
@@ -28,11 +32,13 @@ class Transaction(db.Model):
         db.String(64),
         unique=True,
         nullable=False,
-        default=lambda:
-            uuid.uuid4().hex
+        index=True,
+        default=lambda: uuid.uuid4().hex
     )
 
-    # ================= USER =================
+    # =====================================================
+    # ================= USER ===============================
+    # =====================================================
 
     user_id = db.Column(
         db.Integer,
@@ -41,14 +47,13 @@ class Transaction(db.Model):
         index=True
     )
 
-    # ================= TYPE =================
+    # =====================================================
+    # ================= TYPE ===============================
+    # =====================================================
 
     transaction_type = db.Column(
-
         db.String(50),
-
         nullable=False,
-
         index=True
     )
 
@@ -63,17 +68,18 @@ class Transaction(db.Model):
     refund
     bonus
     penalty
-    transfer
+    transfer_sent
+    transfer_received
     """
 
-    # ================= STATUS =================
+    # =====================================================
+    # ================= STATUS =============================
+    # =====================================================
 
     status = db.Column(
-
         db.String(20),
-
+        nullable=False,
         default="completed",
-
         index=True
     )
 
@@ -84,27 +90,31 @@ class Transaction(db.Model):
     cancelled
     """
 
-    # ================= MONEY =================
+    # =====================================================
+    # ================= MONEY ==============================
+    # =====================================================
 
     amount = db.Column(
-        db.Float,
+        db.Numeric(18, 2),
         nullable=False,
-        default=0
+        default=Decimal("0.00")
     )
 
     before_balance = db.Column(
-        db.Float,
+        db.Numeric(18, 2),
         nullable=False,
-        default=0
+        default=Decimal("0.00")
     )
 
     after_balance = db.Column(
-        db.Float,
+        db.Numeric(18, 2),
         nullable=False,
-        default=0
+        default=Decimal("0.00")
     )
 
-    # ================= GAME =================
+    # =====================================================
+    # ================= GAME / REFERENCE ===================
+    # =====================================================
 
     table_id = db.Column(
         db.Integer,
@@ -115,10 +125,13 @@ class Transaction(db.Model):
 
     reference_id = db.Column(
         db.String(100),
-        nullable=True
+        nullable=True,
+        index=True
     )
 
-    # ================= EXTRA =================
+    # =====================================================
+    # ================= EXTRA ==============================
+    # =====================================================
 
     remark = db.Column(
         db.String(255),
@@ -135,27 +148,46 @@ class Transaction(db.Model):
         nullable=True
     )
 
-    # ================= TIME =================
+    # =====================================================
+    # ================= TIME ===============================
+    # =====================================================
 
     created_at = db.Column(
         db.DateTime,
         default=datetime.utcnow,
+        nullable=False,
         index=True
     )
 
     updated_at = db.Column(
         db.DateTime,
         default=datetime.utcnow,
-        onupdate=datetime.utcnow
+        onupdate=datetime.utcnow,
+        nullable=False
     )
 
-    # ================= SERIALIZE =================
+    # =====================================================
+    # ================= RELATIONSHIP =======================
+    # =====================================================
+
+    user = db.relationship(
+        "User",
+        backref=db.backref(
+            "transactions",
+            lazy=True
+        )
+    )
+
+    # =====================================================
+    # ================= SERIALIZER =========================
+    # =====================================================
 
     def to_dict(self):
 
         return {
 
-            "id": self.id,
+            "id":
+                self.id,
 
             "transaction_id":
                 self.transaction_id,
@@ -170,13 +202,13 @@ class Transaction(db.Model):
                 self.status,
 
             "amount":
-                self.amount,
+                str(self.amount),
 
             "before_balance":
-                self.before_balance,
+                str(self.before_balance),
 
             "after_balance":
-                self.after_balance,
+                str(self.after_balance),
 
             "table_id":
                 self.table_id,
@@ -187,6 +219,30 @@ class Transaction(db.Model):
             "remark":
                 self.remark,
 
+            "ip_address":
+                self.ip_address,
+
+            "device_info":
+                self.device_info,
+
             "created_at":
-                str(self.created_at)
-  }
+                self.created_at.isoformat()
+                if self.created_at else None,
+
+            "updated_at":
+                self.updated_at.isoformat()
+                if self.updated_at else None
+        }
+
+    # =====================================================
+    # ================= DEBUG ==============================
+    # =====================================================
+
+    def __repr__(self):
+
+        return (
+            f"<Transaction "
+            f"{self.transaction_id} "
+            f"{self.transaction_type} "
+            f"{self.amount}>"
+    )
