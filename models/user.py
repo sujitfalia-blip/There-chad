@@ -78,8 +78,8 @@ class User(db.Model):
     # ================= WALLET =================
 
     coins = db.Column(
-        db.BigInteger,
-        default=1000
+    Numeric(18, 2),
+    default=0
     )
 
     bonus_coins = db.Column(
